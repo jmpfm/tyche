@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Assets | Tyche</title>
+	<link rel="stylesheet" th:href="@{/css/assets.css}">
+</head>
+<body>
+	<header class="app-header">
+		<nav class="top-nav" aria-label="Primary">
+			<a class="brand" th:href="@{/assets}">Tyche</a>
+			<a class="nav-link active" th:href="@{/assets}">Assets</a>
+		</nav>
+	</header>
+
+	<main class="assets-shell">
+		<section class="portfolio-heading" aria-labelledby="assets-title">
+			<div>
+				<p class="eyebrow">Portfolio</p>
+				<h1 id="assets-title">Assets</h1>
+			</div>
+			<div class="portfolio-total">
+				<span>Total value</span>
+				<strong th:text="${money.format(portfolio.totalValue)}">$0.00</strong>
+			</div>
+		</section>
+
+		<section class="metrics-grid" aria-label="Portfolio summary">
+			<article class="metric-card">
+				<span class="metric-label">Invested</span>
+				<strong th:text="${money.format(portfolio.totalCost)}">$0.00</strong>
+			</article>
+			<article class="metric-card" th:classappend="${portfolio.unrealizedProfitLoss.signum() >= 0} ? 'positive' : 'negative'">
+				<span class="metric-label">Unrealized P/L</span>
+				<strong th:text="${money.format(portfolio.unrealizedProfitLoss)}">$0.00</strong>
+				<small th:text="${#numbers.formatDecimal(portfolio.unrealizedProfitLossPercent, 1, 2)} + '%'">0.00%</small>
+			</article>
+			<article class="metric-card" th:classappend="${portfolio.dayChangeValue.signum() >= 0} ? 'positive' : 'negative'">
+				<span class="metric-label">Today</span>
+				<strong th:text="${money.format(portfolio.dayChangeValue)}">$0.00</strong>
+				<small th:text="${#numbers.formatDecimal(portfolio.dayChangePercent, 1, 2)} + '%'">0.00%</small>
+			</article>
+			<article class="metric-card">
+				<span class="metric-label">Holdings</span>
+				<strong th:text="${#lists.size(portfolio.positions)}">0</strong>
+			</article>
+		</section>
+
+		<section class="allocation-section" aria-labelledby="allocation-title">
+			<div class="section-heading">
+				<h2 id="allocation-title">Allocation</h2>
+				<span th:text="${#lists.size(portfolio.positions)} + ' assets'">0 assets</span>
+			</div>
+
+			<div class="allocation-list">
+				<article class="allocation-row" th:each="position : ${portfolio.positions}">
+					<div class="asset-identity">
+						<span class="asset-symbol" th:text="${position.symbol}">VOO</span>
+						<span class="asset-name" th:text="${position.name}">Vanguard S&amp;P 500 ETF</span>
+					</div>
+					<div class="allocation-meter" aria-hidden="true">
+						<span th:style="'width: ' + ${position.allocationWidth}"></span>
+					</div>
+					<strong th:text="${#numbers.formatDecimal(position.allocationPercent, 1, 2)} + '%'">0.00%</strong>
+				</article>
+			</div>
+		</section>
+
+		<section class="trades-section" aria-labelledby="trades-title">
+			<div class="section-heading">
+				<h2 id="trades-title">Recommended trades</h2>
+				<span th:text="${#lists.size(portfolio.recommendedTrades)} + ' suggestions'">0 suggestions</span>
+			</div>
+
+			<div class="trade-list">
+				<article class="trade-card" th:each="trade : ${portfolio.recommendedTrades}">
+					<div class="trade-action" th:classappend="${trade.action == 'Buy'} ? ' buy' : ' trim'" th:text="${trade.action}">Buy</div>
+					<div class="trade-detail">
+						<strong th:text="${trade.symbol}">VOO</strong>
+						<span th:text="${trade.name}">Vanguard S&amp;P 500 ETF</span>
+						<p th:text="${trade.rationale}">Increase broad-market exposure using available cash.</p>
+					</div>
+					<div class="trade-meta">
+						<span th:text="${trade.confidence} + ' confidence'">High confidence</span>
+						<strong th:text="${money.format(trade.estimatedAmount)}">$0.00</strong>
+					</div>
+					<button class="execute-button" type="button">Execute now</button>
+				</article>
+			</div>
+		</section>
+
+		<section class="holdings-section" aria-labelledby="holdings-title">
+			<div class="section-heading">
+				<h2 id="holdings-title">Holdings</h2>
+				<span th:text="${money.format(portfolio.totalValue)}">$0.00</span>
+			</div>
+
+			<div class="table-frame">
+				<table>
+					<thead>
+						<tr>
+							<th scope="col">Asset</th>
+							<th scope="col">Class</th>
+							<th scope="col" class="number">Qty</th>
+							<th scope="col" class="number">Price</th>
+							<th scope="col" class="number">Value</th>
+							<th scope="col" class="number">P/L</th>
+							<th scope="col" class="number">Today</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr th:each="position : ${portfolio.positions}">
+							<td>
+								<div class="asset-cell">
+									<strong th:text="${position.symbol}">VOO</strong>
+									<span th:text="${position.name}">Vanguard S&amp;P 500 ETF</span>
+								</div>
+							</td>
+							<td>
+								<span class="asset-class" th:text="${position.assetClass}">ETF</span>
+							</td>
+							<td class="number" th:text="${#numbers.formatDecimal(position.quantity, 1, 4)}">0.0000</td>
+							<td class="number" th:text="${money.format(position.marketPrice)}">$0.00</td>
+							<td class="number strong" th:text="${money.format(position.marketValue)}">$0.00</td>
+							<td class="number" th:classappend="${position.unrealizedProfitLoss.signum() >= 0} ? ' positive-text' : ' negative-text'">
+								<span th:text="${money.format(position.unrealizedProfitLoss)}">$0.00</span>
+								<small th:text="${#numbers.formatDecimal(position.unrealizedProfitLossPercent, 1, 2)} + '%'">0.00%</small>
+							</td>
+							<td class="number" th:classappend="${position.dayChangePercent.signum() >= 0} ? ' positive-text' : ' negative-text'" th:text="${#numbers.formatDecimal(position.dayChangePercent, 1, 2)} + '%'">0.00%</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</section>
+	</main>
+</body>
+</html>
