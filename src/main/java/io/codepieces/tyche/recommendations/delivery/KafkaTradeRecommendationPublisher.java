@@ -2,18 +2,16 @@ package io.codepieces.tyche.recommendations.delivery;
 
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import io.codepieces.tyche.recommendations.model.RecommendedTrade;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 public class KafkaTradeRecommendationPublisher implements TradeRecommendationPublisher {
-
-	private static final Logger log = LoggerFactory.getLogger(KafkaTradeRecommendationPublisher.class);
 
 	private final KafkaTemplate<String, TradeRecommendationMessage> kafkaTemplate;
 	private final String topic;

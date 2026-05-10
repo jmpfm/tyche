@@ -8,8 +8,7 @@ import java.util.List;
 import java.util.Locale;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
@@ -17,9 +16,9 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
+@Slf4j
 public class GdeltMacroSignalProvider implements MacroSignalProvider {
 
-	private static final Logger log = LoggerFactory.getLogger(GdeltMacroSignalProvider.class);
 	private static final String SOURCE = "gdelt-world-developments";
 
 	private final RestClient restClient;

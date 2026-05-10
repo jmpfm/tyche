@@ -12,17 +12,16 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.codepieces.tyche.assets.PortfolioPosition;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
 @Service
+@Slf4j
 public class SecFinancialStatementSignalProvider implements FinancialStatementSignalProvider {
 
-	private static final Logger log = LoggerFactory.getLogger(SecFinancialStatementSignalProvider.class);
 	private static final String SOURCE = "sec-edgar-companyfacts";
 
 	private final RestClient restClient;

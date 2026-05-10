@@ -63,7 +63,7 @@ public class TradeRecommendationService {
 		List<RecommendedTrade> recommendations = new ArrayList<>();
 		List<AssetPosition> investablePositions = positions.stream()
 				.filter(position -> !isCash(position))
-				.filter(position -> majorExchangeAsset(position))
+				.filter(TradeRecommendationService::majorExchangeAsset)
 				.toList();
 
 		for (AssetPosition position : investablePositions) {

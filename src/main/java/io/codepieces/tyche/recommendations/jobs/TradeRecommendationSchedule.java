@@ -1,19 +1,17 @@
 package io.codepieces.tyche.recommendations.jobs;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import io.codepieces.tyche.recommendations.model.RecommendationRunResult;
 import io.codepieces.tyche.recommendations.workflow.TradeRecommendationWorkflow;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
+@Slf4j
 @ConditionalOnProperty(prefix = "tyche.recommendations.schedule", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class TradeRecommendationSchedule {
-
-	private static final Logger log = LoggerFactory.getLogger(TradeRecommendationSchedule.class);
 
 	private final TradeRecommendationWorkflow workflow;
 
