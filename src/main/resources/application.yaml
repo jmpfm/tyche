@@ -12,6 +12,29 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+tyche:
+  recommendations:
+    kafka:
+      topic: ${TYCHE_RECOMMENDATIONS_TOPIC:tyche.trade-recommendations.v1}
+      enabled: ${TYCHE_RECOMMENDATIONS_KAFKA_ENABLED:true}
+    schedule:
+      enabled: ${TYCHE_RECOMMENDATIONS_SCHEDULE_ENABLED:true}
+      cron: ${TYCHE_RECOMMENDATIONS_CRON:0 30 22 * * MON-FRI}
+      zone: ${TYCHE_RECOMMENDATIONS_ZONE:Europe/London}
+    news:
+      enabled: ${TYCHE_RECOMMENDATIONS_NEWS_ENABLED:true}
+      gdelt-url: ${TYCHE_GDELT_DOC_URL:https://api.gdeltproject.org/api/v2/doc/doc}
+    macro:
+      enabled: ${TYCHE_RECOMMENDATIONS_MACRO_ENABLED:true}
+    financial:
+      sec:
+        user-agent: ${SEC_USER_AGENT:}
 
 ---
 spring:

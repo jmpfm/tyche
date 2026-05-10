@@ -22,6 +22,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import io.codepieces.tyche.analysis.TechnicalIndicatorService;
 import io.codepieces.tyche.market.MarketDataService;
+import io.codepieces.tyche.recommendations.scoring.TradeRecommendationService;
 
 @WebMvcTest(AssetsController.class)
 @Import({
@@ -60,7 +61,7 @@ class AssetsControllerTests {
 				.andExpect(content().string(org.hamcrest.Matchers.containsString("Recommended trades")))
 				.andExpect(content().string(org.hamcrest.Matchers.containsString("RSI 14")))
 				.andExpect(content().string(org.hamcrest.Matchers.containsString("MACD")))
-				.andExpect(content().string(org.hamcrest.Matchers.containsString("Execute now")))
+				.andExpect(content().string(org.hamcrest.Matchers.containsString("Review")))
 				.andExpect(content().string(org.hamcrest.Matchers.containsString("$36,395.00")))
 				.andExpect(content().string(org.hamcrest.Matchers.containsString("Vanguard S&amp;P 500 ETF")));
 	}

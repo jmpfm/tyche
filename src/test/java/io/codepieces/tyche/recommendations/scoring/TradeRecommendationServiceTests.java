@@ -1,10 +1,13 @@
-package io.codepieces.tyche.assets;
+package io.codepieces.tyche.recommendations.scoring;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.math.BigDecimal;
 import java.util.List;
 
+import io.codepieces.tyche.assets.AssetIndicators;
+import io.codepieces.tyche.assets.AssetPosition;
+import io.codepieces.tyche.recommendations.model.RecommendedTrade;
 import org.junit.jupiter.api.Test;
 
 class TradeRecommendationServiceTests {
@@ -22,27 +25,28 @@ class TradeRecommendationServiceTests {
 		), dollars("36395.00"));
 
 		assertThat(trades).hasSize(3);
-		assertThat(trades.getFirst().action()).isEqualTo("Trim");
-		assertThat(trades.getFirst().symbol()).isEqualTo("BTC");
-		assertThat(trades.getFirst().estimatedAmount()).isEqualByComparingTo("1500.00");
+		assertThat(trades.getFirst().action()).isEqualTo("Reduce");
+		assertThat(trades.getFirst().symbol()).isEqualTo("VOO");
+		assertThat(trades.getFirst().estimatedAmount()).isEqualByComparingTo("3231.88");
 		assertThat(trades.getFirst().confidence()).isEqualTo("High");
 		assertThat(trades)
 				.extracting(RecommendedTrade::symbol)
-				.contains("VOO", "AAPL");
+				.contains("AAPL", "MSFT");
 	}
 
 	@Test
 	void doesNotRecommendTradesInsideRebalanceThresholds() {
 		List<RecommendedTrade> trades = tradeRecommendationService.recommendTrades(List.of(
-				position("VOO", "Vanguard S&P 500 ETF", "ETF", "3500.00", "35.00"),
+				position("VOO", "Vanguard S&P 500 ETF", "ETF", "1500.00", "15.00"),
 				position("AAPL", "Apple Inc.", "Equity", "1500.00", "15.00"),
 				position("MSFT", "Microsoft Corp.", "Equity", "1500.00", "15.00"),
-				position("BTC", "Bitcoin", "Crypto", "1000.00", "10.00"),
 				position("BND", "Vanguard Total Bond Market ETF", "ETF", "1500.00", "15.00"),
-				position("CASH", "Available cash", "Cash", "1000.00", "10.00")
+				position("CASH", "Available cash", "Cash", "4000.00", "40.00")
 		), dollars("10000.00"));
 
-		assertThat(trades).isEmpty();
+		assertThat(trades)
+				.extracting(RecommendedTrade::action)
+				.containsOnly("Hold");
 	}
 
 	@Test
@@ -58,7 +62,7 @@ class TradeRecommendationServiceTests {
 
 		assertThat(trades)
 				.extracting(RecommendedTrade::action)
-				.doesNotContain("Buy");
+				.doesNotContain("Increase");
 	}
 
 	private static AssetPosition position(String symbol, String name, String assetClass, String marketValue, String allocationPercent) {
@@ -68,18 +72,36 @@ class TradeRecommendationServiceTests {
 				assetClass,
 				BigDecimal.ONE,
 				BigDecimal.ZERO,
-				BigDecimal.ZERO,
+				dollars(marketValue),
 				dollars(marketValue),
 				BigDecimal.ZERO,
 				BigDecimal.ZERO,
 				BigDecimal.ZERO,
 				new BigDecimal(allocationPercent),
 				allocationPercent + "%",
-				AssetIndicators.unavailable(symbol)
+				availableIndicators(symbol)
 		);
 	}
 
 	private static BigDecimal dollars(String value) {
 		return new BigDecimal(value).setScale(2);
+	}
+
+	private static AssetIndicators availableIndicators(String symbol) {
+		if ("CASH".equals(symbol)) {
+			return AssetIndicators.unavailable(symbol);
+		}
+		return new AssetIndicators(
+				symbol,
+				new BigDecimal("55.00"),
+				new BigDecimal("95.00"),
+				new BigDecimal("90.00"),
+				new BigDecimal("1.00"),
+				new BigDecimal("0.50"),
+				"Uptrend",
+				"bullish",
+				"Positive",
+				"bullish"
+		);
 	}
 }

@@ -82,6 +82,34 @@ symbol, name, asset_class, quantity, average_cost, market_price, day_change_perc
 
 As the platform develops, environment-specific settings such as database credentials, Kafka broker URLs, market data provider keys, and trading API credentials should be supplied through environment variables or externalized configuration.
 
+### Trade Recommendations
+
+Tyche can generate advisory-only trade recommendations from the current portfolio,
+technical indicators, open-source news and macro signals, and SEC fundamentals
+when a SEC user agent is configured. Recommendations are published as JSON to
+Kafka topic `tyche.trade-recommendations.v1` by default.
+
+Manual endpoints:
+
+```text
+POST /api/recommendations/generate
+GET /api/recommendations/backtest
+```
+
+Useful environment variables:
+
+```text
+KAFKA_BOOTSTRAP_SERVERS=localhost:9092
+TYCHE_RECOMMENDATIONS_TOPIC=tyche.trade-recommendations.v1
+TYCHE_RECOMMENDATIONS_KAFKA_ENABLED=true
+TYCHE_RECOMMENDATIONS_SCHEDULE_ENABLED=true
+TYCHE_RECOMMENDATIONS_CRON="0 30 22 * * MON-FRI"
+SEC_USER_AGENT="Tyche contact@example.com"
+```
+
+If GDELT or SEC calls fail, the engine degrades those factors to neutral and
+still records the available portfolio and technical-analysis context.
+
 ## Planned Capabilities
 
 - Market data ingestion and processing

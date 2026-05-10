@@ -4,9 +4,15 @@ import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.Map;
 
 import io.codepieces.tyche.analysis.TechnicalIndicatorService;
+import io.codepieces.tyche.recommendations.model.RecommendationSignal;
+import io.codepieces.tyche.recommendations.signals.RecommendationSignalService;
+import io.codepieces.tyche.recommendations.model.RecommendedTrade;
+import io.codepieces.tyche.recommendations.scoring.TradeRecommendationService;
 import io.codepieces.tyche.market.MarketDataService;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -19,17 +25,20 @@ public class AssetPortfolioService {
 	private final TradeRecommendationService tradeRecommendationService;
 	private final MarketDataService marketDataService;
 	private final TechnicalIndicatorService technicalIndicatorService;
+	private final RecommendationSignalService recommendationSignalService;
 
 	public AssetPortfolioService(
 			PortfolioPositionRepository portfolioPositionRepository,
 			TradeRecommendationService tradeRecommendationService,
 			MarketDataService marketDataService,
-			TechnicalIndicatorService technicalIndicatorService
+			TechnicalIndicatorService technicalIndicatorService,
+			ObjectProvider<RecommendationSignalService> recommendationSignalService
 	) {
 		this.portfolioPositionRepository = portfolioPositionRepository;
 		this.tradeRecommendationService = tradeRecommendationService;
 		this.marketDataService = marketDataService;
 		this.technicalIndicatorService = technicalIndicatorService;
+		this.recommendationSignalService = recommendationSignalService.getIfAvailable();
 	}
 
 	public AssetPortfolio currentPortfolio() {
@@ -49,7 +58,10 @@ public class AssetPortfolioService {
 		List<AssetPosition> positions = rawPositions.stream()
 				.map(position -> toAssetPosition(position, totalValue, indicatorsFor(position)))
 				.toList();
-		List<RecommendedTrade> recommendedTrades = tradeRecommendationService.recommendTrades(positions, totalValue);
+		Map<String, RecommendationSignal> signals = recommendationSignalService == null
+				? Map.of()
+				: recommendationSignalService.signalsFor(rawPositions);
+		List<RecommendedTrade> recommendedTrades = tradeRecommendationService.recommendTrades(positions, totalValue, signals);
 
 		return new AssetPortfolio(
 				money(totalValue),
