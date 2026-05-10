@@ -15,42 +15,39 @@ public class AssetPortfolioService {
 	private static final MathContext MONEY_CONTEXT = new MathContext(16, RoundingMode.HALF_UP);
 	private static final BigDecimal ONE_HUNDRED = new BigDecimal("100");
 
+	private final PortfolioPositionRepository portfolioPositionRepository;
 	private final TradeRecommendationService tradeRecommendationService;
 	private final MarketDataService marketDataService;
 	private final TechnicalIndicatorService technicalIndicatorService;
 
 	public AssetPortfolioService(
+			PortfolioPositionRepository portfolioPositionRepository,
 			TradeRecommendationService tradeRecommendationService,
 			MarketDataService marketDataService,
 			TechnicalIndicatorService technicalIndicatorService
 	) {
+		this.portfolioPositionRepository = portfolioPositionRepository;
 		this.tradeRecommendationService = tradeRecommendationService;
 		this.marketDataService = marketDataService;
 		this.technicalIndicatorService = technicalIndicatorService;
 	}
 
 	public AssetPortfolio currentPortfolio() {
-		List<RawPosition> rawPositions = List.of(
-				new RawPosition("VOO", "Vanguard S&P 500 ETF", "ETF", "18.0000", "425.30", "482.75", "0.42"),
-				new RawPosition("AAPL", "Apple Inc.", "Equity", "22.0000", "168.40", "186.90", "0.87"),
-				new RawPosition("MSFT", "Microsoft Corp.", "Equity", "10.0000", "391.20", "438.15", "-0.18"),
-				new RawPosition("BTC", "Bitcoin", "Crypto", "0.1850", "58250.00", "64120.00", "1.35"),
-				new RawPosition("CASH", "Available cash", "Cash", "1.0000", "7350.00", "7350.00", "0.00")
-		);
+		List<PortfolioPosition> rawPositions = portfolioPositionRepository.findCurrentPositions();
 
 		BigDecimal totalValue = rawPositions.stream()
-				.map(RawPosition::marketValue)
+				.map(AssetPortfolioService::marketValue)
 				.reduce(BigDecimal.ZERO, BigDecimal::add);
 		BigDecimal totalCost = rawPositions.stream()
-				.map(RawPosition::costBasis)
+				.map(AssetPortfolioService::costBasis)
 				.reduce(BigDecimal.ZERO, BigDecimal::add);
 		BigDecimal unrealizedProfitLoss = totalValue.subtract(totalCost);
 		BigDecimal dayChangeValue = rawPositions.stream()
-				.map(RawPosition::dayChangeValue)
+				.map(AssetPortfolioService::dayChangeValue)
 				.reduce(BigDecimal.ZERO, BigDecimal::add);
 
 		List<AssetPosition> positions = rawPositions.stream()
-				.map(position -> position.toAssetPosition(totalValue, indicatorsFor(position)))
+				.map(position -> toAssetPosition(position, totalValue, indicatorsFor(position)))
 				.toList();
 		List<RecommendedTrade> recommendedTrades = tradeRecommendationService.recommendTrades(positions, totalValue);
 
@@ -80,81 +77,50 @@ public class AssetPortfolioService {
 				.setScale(2, RoundingMode.HALF_UP);
 	}
 
-	private AssetIndicators indicatorsFor(RawPosition position) {
+	private AssetIndicators indicatorsFor(PortfolioPosition position) {
 		if (position.isCash()) {
 			return AssetIndicators.unavailable(position.symbol());
 		}
 		return technicalIndicatorService.indicatorsFor(
 				position.symbol(),
-				marketDataService.dailyHistory(position.symbol(), position.marketPriceValue())
+				marketDataService.dailyHistory(position.symbol(), position.marketPrice())
 		);
 	}
 
-	private record RawPosition(
-			String symbol,
-			String name,
-			String assetClass,
-			String quantity,
-			String averageCost,
-			String marketPrice,
-			String dayChangePercent
-	) {
+	private static BigDecimal costBasis(PortfolioPosition position) {
+		return position.quantity().multiply(position.averageCost(), MONEY_CONTEXT);
+	}
 
-		private BigDecimal quantityValue() {
-			return new BigDecimal(quantity);
-		}
+	private static BigDecimal marketValue(PortfolioPosition position) {
+		return position.quantity().multiply(position.marketPrice(), MONEY_CONTEXT);
+	}
 
-		private BigDecimal averageCostValue() {
-			return new BigDecimal(averageCost);
-		}
+	private static BigDecimal dayChangeValue(PortfolioPosition position) {
+		return marketValue(position)
+				.multiply(position.dayChangePercent(), MONEY_CONTEXT)
+				.divide(ONE_HUNDRED, MONEY_CONTEXT);
+	}
 
-		private BigDecimal marketPriceValue() {
-			return new BigDecimal(marketPrice);
-		}
+	private static AssetPosition toAssetPosition(PortfolioPosition position, BigDecimal totalValue, AssetIndicators indicators) {
+		BigDecimal marketValue = marketValue(position);
+		BigDecimal costBasis = costBasis(position);
+		BigDecimal unrealizedProfitLoss = marketValue.subtract(costBasis);
+		BigDecimal allocationPercent = percent(marketValue, totalValue);
 
-		private BigDecimal dayChangePercentValue() {
-			return new BigDecimal(dayChangePercent);
-		}
-
-		private BigDecimal costBasis() {
-			return quantityValue().multiply(averageCostValue(), MONEY_CONTEXT);
-		}
-
-		private BigDecimal marketValue() {
-			return quantityValue().multiply(marketPriceValue(), MONEY_CONTEXT);
-		}
-
-		private BigDecimal dayChangeValue() {
-			return marketValue()
-					.multiply(dayChangePercentValue(), MONEY_CONTEXT)
-					.divide(ONE_HUNDRED, MONEY_CONTEXT);
-		}
-
-		private boolean isCash() {
-			return "CASH".equalsIgnoreCase(symbol) || "Cash".equalsIgnoreCase(assetClass);
-		}
-
-		private AssetPosition toAssetPosition(BigDecimal totalValue, AssetIndicators indicators) {
-			BigDecimal marketValue = marketValue();
-			BigDecimal costBasis = costBasis();
-			BigDecimal unrealizedProfitLoss = marketValue.subtract(costBasis);
-			BigDecimal allocationPercent = percent(marketValue, totalValue);
-
-			return new AssetPosition(
-					symbol,
-					name,
-					assetClass,
-					quantityValue(),
-					money(averageCostValue()),
-					money(marketPriceValue()),
-					money(marketValue),
-					money(unrealizedProfitLoss),
-					percent(unrealizedProfitLoss, costBasis),
-					dayChangePercentValue().setScale(2, RoundingMode.HALF_UP),
-					allocationPercent,
-					allocationPercent.max(BigDecimal.ONE).toPlainString() + "%",
-					indicators
-			);
-		}
+		return new AssetPosition(
+				position.symbol(),
+				position.name(),
+				position.assetClass(),
+				position.quantity(),
+				money(position.averageCost()),
+				money(position.marketPrice()),
+				money(marketValue),
+				money(unrealizedProfitLoss),
+				percent(unrealizedProfitLoss, costBasis),
+				position.dayChangePercent().setScale(2, RoundingMode.HALF_UP),
+				allocationPercent,
+				allocationPercent.max(BigDecimal.ONE).toPlainString() + "%",
+				indicators
+		);
 	}
 }

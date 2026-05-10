@@ -67,6 +67,54 @@
 			</div>
 		</section>
 
+		<section class="indicators-section" aria-labelledby="indicators-title">
+			<div class="section-heading">
+				<h2 id="indicators-title">Technical indicators</h2>
+				<span>RSI, trend and MACD</span>
+			</div>
+
+			<div class="indicator-grid">
+				<article class="indicator-card" th:each="position : ${portfolio.positions}">
+					<div class="indicator-header">
+						<div class="asset-identity">
+							<span class="asset-symbol" th:text="${position.symbol}">VOO</span>
+							<span class="asset-name" th:text="${position.name}">Vanguard S&amp;P 500 ETF</span>
+						</div>
+						<span class="signal-pill" th:classappend="${position.indicators.trendClass}" th:text="${position.indicators.trend}">Uptrend</span>
+					</div>
+
+					<div class="indicator-values" th:if="${position.indicators.available()}">
+						<div class="indicator-value">
+							<span>RSI 14</span>
+							<strong th:text="${#numbers.formatDecimal(position.indicators.rsi14, 1, 2)}">0.00</strong>
+						</div>
+						<div class="indicator-value">
+							<span>Momentum</span>
+							<strong th:text="${position.indicators.momentum}">Positive</strong>
+						</div>
+						<div class="indicator-value">
+							<span>SMA 50</span>
+							<strong th:text="${money.format(position.indicators.sma50)}">$0.00</strong>
+						</div>
+						<div class="indicator-value">
+							<span>SMA 200</span>
+							<strong th:text="${money.format(position.indicators.sma200)}">$0.00</strong>
+						</div>
+						<div class="indicator-value">
+							<span>MACD</span>
+							<strong th:text="${#numbers.formatDecimal(position.indicators.macd, 1, 2)}">0.00</strong>
+						</div>
+						<div class="indicator-value">
+							<span>Signal</span>
+							<strong th:text="${#numbers.formatDecimal(position.indicators.macdSignal, 1, 2)}">0.00</strong>
+						</div>
+					</div>
+
+					<div class="indicator-unavailable" th:unless="${position.indicators.available()}">N/A</div>
+				</article>
+			</div>
+		</section>
+
 		<section class="trades-section" aria-labelledby="trades-title">
 			<div class="section-heading">
 				<h2 id="trades-title">Recommended trades</h2>

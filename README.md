@@ -70,6 +70,16 @@ Application configuration lives in:
 src/main/resources/application.yaml
 ```
 
+The assets dashboard reads current holdings from the `portfolio_positions`
+table. The default H2 profile creates and seeds this table from
+`src/main/resources/schema.sql` and `src/main/resources/data.sql`. When running
+with the `mysql` profile, create the same table in the configured MySQL database
+and populate these columns:
+
+```text
+symbol, name, asset_class, quantity, average_cost, market_price, day_change_percent, display_order
+```
+
 As the platform develops, environment-specific settings such as database credentials, Kafka broker URLs, market data provider keys, and trading API credentials should be supplied through environment variables or externalized configuration.
 
 ## Planned Capabilities
