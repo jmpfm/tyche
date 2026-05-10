@@ -15,8 +15,17 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
 
+import io.codepieces.tyche.analysis.TechnicalIndicatorService;
+import io.codepieces.tyche.market.MarketDataService;
+
 @WebMvcTest(AssetsController.class)
-@Import({ AssetMoneyFormatter.class, AssetPortfolioService.class })
+@Import({
+		AssetMoneyFormatter.class,
+		AssetPortfolioService.class,
+		TradeRecommendationService.class,
+		MarketDataService.class,
+		TechnicalIndicatorService.class
+})
 class AssetsControllerTests {
 
 	@Autowired
@@ -42,6 +51,7 @@ class AssetsControllerTests {
 				})
 				.andExpect(content().string(org.hamcrest.Matchers.containsString("Assets")))
 				.andExpect(content().string(org.hamcrest.Matchers.containsString("Recommended trades")))
+				.andExpect(content().string(org.hamcrest.Matchers.containsString("RSI 14")))
 				.andExpect(content().string(org.hamcrest.Matchers.containsString("Execute now")))
 				.andExpect(content().string(org.hamcrest.Matchers.containsString("$36,395.00")))
 				.andExpect(content().string(org.hamcrest.Matchers.containsString("Vanguard S&amp;P 500 ETF")));

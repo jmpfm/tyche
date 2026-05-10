@@ -5,6 +5,8 @@ import java.math.MathContext;
 import java.math.RoundingMode;
 import java.util.List;
 
+import io.codepieces.tyche.analysis.TechnicalIndicatorService;
+import io.codepieces.tyche.market.MarketDataService;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -12,6 +14,20 @@ public class AssetPortfolioService {
 
 	private static final MathContext MONEY_CONTEXT = new MathContext(16, RoundingMode.HALF_UP);
 	private static final BigDecimal ONE_HUNDRED = new BigDecimal("100");
+
+	private final TradeRecommendationService tradeRecommendationService;
+	private final MarketDataService marketDataService;
+	private final TechnicalIndicatorService technicalIndicatorService;
+
+	public AssetPortfolioService(
+			TradeRecommendationService tradeRecommendationService,
+			MarketDataService marketDataService,
+			TechnicalIndicatorService technicalIndicatorService
+	) {
+		this.tradeRecommendationService = tradeRecommendationService;
+		this.marketDataService = marketDataService;
+		this.technicalIndicatorService = technicalIndicatorService;
+	}
 
 	public AssetPortfolio currentPortfolio() {
 		List<RawPosition> rawPositions = List.of(
@@ -34,8 +50,9 @@ public class AssetPortfolioService {
 				.reduce(BigDecimal.ZERO, BigDecimal::add);
 
 		List<AssetPosition> positions = rawPositions.stream()
-				.map(position -> position.toAssetPosition(totalValue))
+				.map(position -> position.toAssetPosition(totalValue, indicatorsFor(position)))
 				.toList();
+		List<RecommendedTrade> recommendedTrades = tradeRecommendationService.recommendTrades(positions, totalValue);
 
 		return new AssetPortfolio(
 				money(totalValue),
@@ -45,36 +62,7 @@ public class AssetPortfolioService {
 				money(dayChangeValue),
 				percent(dayChangeValue, totalValue.subtract(dayChangeValue)),
 				positions,
-				recommendedTrades()
-		);
-	}
-
-	private static List<RecommendedTrade> recommendedTrades() {
-		return List.of(
-				new RecommendedTrade(
-						"Buy",
-						"VOO",
-						"Vanguard S&P 500 ETF",
-						money(new BigDecimal("1250.00")),
-						"Increase broad-market exposure using available cash.",
-						"High"
-				),
-				new RecommendedTrade(
-						"Trim",
-						"BTC",
-						"Bitcoin",
-						money(new BigDecimal("900.00")),
-						"Reduce crypto concentration after recent outperformance.",
-						"Medium"
-				),
-				new RecommendedTrade(
-						"Buy",
-						"MSFT",
-						"Microsoft Corp.",
-						money(new BigDecimal("750.00")),
-						"Add to software allocation while daily momentum is muted.",
-						"Medium"
-				)
+				recommendedTrades
 		);
 	}
 
@@ -90,6 +78,16 @@ public class AssetPortfolioService {
 				.divide(denominator, MONEY_CONTEXT)
 				.multiply(ONE_HUNDRED)
 				.setScale(2, RoundingMode.HALF_UP);
+	}
+
+	private AssetIndicators indicatorsFor(RawPosition position) {
+		if (position.isCash()) {
+			return AssetIndicators.unavailable(position.symbol());
+		}
+		return technicalIndicatorService.indicatorsFor(
+				position.symbol(),
+				marketDataService.dailyHistory(position.symbol(), position.marketPriceValue())
+		);
 	}
 
 	private record RawPosition(
@@ -132,7 +130,11 @@ public class AssetPortfolioService {
 					.divide(ONE_HUNDRED, MONEY_CONTEXT);
 		}
 
-		private AssetPosition toAssetPosition(BigDecimal totalValue) {
+		private boolean isCash() {
+			return "CASH".equalsIgnoreCase(symbol) || "Cash".equalsIgnoreCase(assetClass);
+		}
+
+		private AssetPosition toAssetPosition(BigDecimal totalValue, AssetIndicators indicators) {
 			BigDecimal marketValue = marketValue();
 			BigDecimal costBasis = costBasis();
 			BigDecimal unrealizedProfitLoss = marketValue.subtract(costBasis);
@@ -150,7 +152,8 @@ public class AssetPortfolioService {
 					percent(unrealizedProfitLoss, costBasis),
 					dayChangePercentValue().setScale(2, RoundingMode.HALF_UP),
 					allocationPercent,
-					allocationPercent.max(BigDecimal.ONE).toPlainString() + "%"
+					allocationPercent.max(BigDecimal.ONE).toPlainString() + "%",
+					indicators
 			);
 		}
 	}

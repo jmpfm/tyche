@@ -321,7 +321,7 @@ h2 {
 
 table {
 	width: 100%;
-	min-width: 850px;
+	min-width: 1120px;
 	border-collapse: collapse;
 }
 
@@ -363,6 +363,32 @@ tbody tr:last-child td {
 	border-radius: 999px;
 	font-size: 0.8rem;
 	font-weight: 800;
+}
+
+.signal-pill {
+	display: inline-flex;
+	align-items: center;
+	min-height: 28px;
+	padding: 0 10px;
+	border-radius: 999px;
+	font-size: 0.8rem;
+	font-weight: 850;
+	white-space: nowrap;
+}
+
+.signal-pill.bullish {
+	color: var(--profit);
+	background: #e7f6ee;
+}
+
+.signal-pill.bearish {
+	color: var(--loss);
+	background: #fce8e6;
+}
+
+.signal-pill.neutral {
+	color: var(--muted);
+	background: var(--surface-soft);
 }
 
 .positive-text,

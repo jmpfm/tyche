@@ -107,6 +107,9 @@
 							<th scope="col" class="number">Value</th>
 							<th scope="col" class="number">P/L</th>
 							<th scope="col" class="number">Today</th>
+							<th scope="col" class="number">RSI 14</th>
+							<th scope="col">Trend</th>
+							<th scope="col" class="number">MACD</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -128,6 +131,15 @@
 								<small th:text="${#numbers.formatDecimal(position.unrealizedProfitLossPercent, 1, 2)} + '%'">0.00%</small>
 							</td>
 							<td class="number" th:classappend="${position.dayChangePercent.signum() >= 0} ? ' positive-text' : ' negative-text'" th:text="${#numbers.formatDecimal(position.dayChangePercent, 1, 2)} + '%'">0.00%</td>
+							<td class="number" th:text="${position.indicators.available() ? #numbers.formatDecimal(position.indicators.rsi14, 1, 2) : 'N/A'}">0.00</td>
+							<td>
+								<span class="signal-pill" th:classappend="${position.indicators.trendClass}" th:text="${position.indicators.trend}">Uptrend</span>
+							</td>
+							<td class="number">
+								<span th:if="${position.indicators.available()}" th:text="${#numbers.formatDecimal(position.indicators.macd, 1, 2)}">0.00</span>
+								<small th:if="${position.indicators.available()}" th:text="${'Signal ' + #numbers.formatDecimal(position.indicators.macdSignal, 1, 2)}">Signal 0.00</small>
+								<span th:unless="${position.indicators.available()}">N/A</span>
+							</td>
 						</tr>
 					</tbody>
 				</table>

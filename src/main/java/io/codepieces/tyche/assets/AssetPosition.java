@@ -14,6 +14,7 @@ public record AssetPosition(
 		BigDecimal unrealizedProfitLossPercent,
 		BigDecimal dayChangePercent,
 		BigDecimal allocationPercent,
-		String allocationWidth
+		String allocationWidth,
+		AssetIndicators indicators
 ) {
 }
