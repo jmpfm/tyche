@@ -26,11 +26,19 @@ public class SecFinancialStatementSignalProvider implements FinancialStatementSi
 
 	private final RestClient restClient;
 	private final String userAgent;
+	private final String tickersUrl;
+	private final String companyFactsBaseUrl;
 	private final Map<String, String> cikCache = new ConcurrentHashMap<>();
 
-	public SecFinancialStatementSignalProvider(@Value("${tyche.recommendations.financial.sec.user-agent:}") String userAgent) {
+	public SecFinancialStatementSignalProvider(
+			@Value("${tyche.recommendations.financial.sec.user-agent:}") String userAgent,
+			@Value("${tyche.recommendations.financial.sec.tickers-url:https://www.sec.gov/files/company_tickers.json}") String tickersUrl,
+			@Value("${tyche.recommendations.financial.sec.companyfacts-base-url:https://data.sec.gov/api/xbrl/companyfacts}") String companyFactsBaseUrl
+	) {
 		this.restClient = RestClient.builder().requestFactory(requestFactory()).build();
 		this.userAgent = userAgent;
+		this.tickersUrl = tickersUrl;
+		this.companyFactsBaseUrl = companyFactsBaseUrl;
 	}
 
 	@Override
@@ -45,7 +53,7 @@ public class SecFinancialStatementSignalProvider implements FinancialStatementSi
 				return FinancialStatementSignal.neutral(SOURCE);
 			}
 			JsonNode facts = restClient.get()
-					.uri("https://data.sec.gov/api/xbrl/companyfacts/CIK" + cik + ".json")
+					.uri(companyFactsBaseUrl + "/CIK" + cik + ".json")
 					.header("User-Agent", userAgent)
 					.retrieve()
 					.body(JsonNode.class);
@@ -64,7 +72,7 @@ public class SecFinancialStatementSignalProvider implements FinancialStatementSi
 		}
 
 		JsonNode tickers = restClient.get()
-				.uri("https://www.sec.gov/files/company_tickers.json")
+				.uri(tickersUrl)
 				.header("User-Agent", userAgent)
 				.retrieve()
 				.body(JsonNode.class);

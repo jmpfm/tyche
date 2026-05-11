@@ -1,0 +1,33 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/api/v2/doc/doc",
+    "queryParameters": {
+      "mode": {
+        "equalTo": "artlist"
+      },
+      "format": {
+        "equalTo": "json"
+      }
+    }
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "articles": [
+        {
+          "title": "Apple reports record profit growth after major upgrade"
+        },
+        {
+          "title": "Microsoft expands cloud partnerships as demand grows"
+        },
+        {
+          "title": "Inflation concerns rise as central bank signals hikes rates"
+        }
+      ]
+    }
+  }
+}

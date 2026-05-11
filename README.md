@@ -8,7 +8,7 @@ This repository is currently in its initial application scaffold phase. The Mave
 
 ## Tech Stack
 
-- Java 25
+- Java 24
 - Spring Boot 4
 - Spring Web MVC
 - Thymeleaf
@@ -24,7 +24,7 @@ This repository is currently in its initial application scaffold phase. The Mave
 
 ### Prerequisites
 
-- Java 25
+- Java 24
 - Kafka
 
 MySQL is only required when running with the `mysql` Spring profile. By default,
@@ -105,10 +105,45 @@ TYCHE_RECOMMENDATIONS_KAFKA_ENABLED=true
 TYCHE_RECOMMENDATIONS_SCHEDULE_ENABLED=true
 TYCHE_RECOMMENDATIONS_CRON="0 30 22 * * MON-FRI"
 SEC_USER_AGENT="Tyche contact@example.com"
+TYCHE_GDELT_DOC_URL=https://api.gdeltproject.org/api/v2/doc/doc
+TYCHE_SEC_TICKERS_URL=https://www.sec.gov/files/company_tickers.json
+TYCHE_SEC_COMPANYFACTS_BASE_URL=https://data.sec.gov/api/xbrl/companyfacts
 ```
 
 If GDELT or SEC calls fail, the engine degrades those factors to neutral and
 still records the available portfolio and technical-analysis context.
+
+### Local Mock API (WireMock)
+
+For local development without external API calls, this repo includes WireMock
+stubs for:
+
+- `GET /api/v2/doc/doc` (GDELT-style articles)
+- `GET /files/company_tickers.json` (SEC ticker map)
+- `GET /api/xbrl/companyfacts/CIK0000320193.json` (SEC company facts sample)
+
+Start WireMock:
+
+```bash
+docker compose -f docker-compose.mock.yml up -d
+```
+
+Run Tyche against the local mock API:
+
+```bash
+SPRING_PROFILES_ACTIVE=local \
+./mvnw spring-boot:run
+```
+
+The `local` profile keeps H2 as the database, disables scheduled recommendation
+runs and Kafka publishing, and points GDELT/SEC lookups at the local WireMock
+instance on port `8089`.
+
+Stop WireMock:
+
+```bash
+docker compose -f docker-compose.mock.yml down
+```
 
 ## Planned Capabilities
 

@@ -35,6 +35,28 @@ tyche:
     financial:
       sec:
         user-agent: ${SEC_USER_AGENT:}
+        tickers-url: ${TYCHE_SEC_TICKERS_URL:https://www.sec.gov/files/company_tickers.json}
+        companyfacts-base-url: ${TYCHE_SEC_COMPANYFACTS_BASE_URL:https://data.sec.gov/api/xbrl/companyfacts}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+
+tyche:
+  recommendations:
+    kafka:
+      enabled: false
+    schedule:
+      enabled: false
+    news:
+      gdelt-url: http://localhost:8089/api/v2/doc/doc
+    financial:
+      sec:
+        user-agent: Tyche local-dev contact@example.com
+        tickers-url: http://localhost:8089/files/company_tickers.json
+        companyfacts-base-url: http://localhost:8089/api/xbrl/companyfacts
 
 ---
 spring:

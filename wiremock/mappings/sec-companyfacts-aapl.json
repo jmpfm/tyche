@@ -1,0 +1,45 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPattern": "/api/xbrl/companyfacts/CIK0000320193\\.json"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "facts": {
+        "us-gaap": {
+          "Revenues": {
+            "units": {
+              "USD": [
+                {
+                  "form": "10-K",
+                  "fy": 2023,
+                  "val": 383285000000
+                },
+                {
+                  "form": "10-K",
+                  "fy": 2024,
+                  "val": 401120000000
+                }
+              ]
+            }
+          },
+          "NetIncomeLoss": {
+            "units": {
+              "USD": [
+                {
+                  "form": "10-K",
+                  "fy": 2024,
+                  "val": 109210000000
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}

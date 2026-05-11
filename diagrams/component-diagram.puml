@@ -1,0 +1,88 @@
+@startuml
+title Tyche - Component Diagram
+
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+left to right direction
+
+actor "User" as user
+actor "Scheduler" as scheduler
+
+node "Tyche Spring Boot App" as app {
+
+  package "Web Layer" {
+    [AssetsController] as assetsController
+    [TradeRecommendationController] as recController
+  }
+
+  package "Portfolio Domain" {
+    [AssetPortfolioService] as portfolioService
+    [TradeRecommendationWorkflow] as workflow
+    [RecommendationBacktestService] as backtest
+  }
+
+  package "Scoring & Analysis" {
+    [TradeRecommendationService] as scoring
+    [TechnicalIndicatorService] as ta
+    [MarketDataService] as marketData
+  }
+
+  package "Signal Aggregation" {
+    [RecommendationSignalService] as signalService
+    [NewsSignalProvider] as newsProvider
+    [MacroSignalProvider] as macroProvider
+    [FinancialStatementSignalProvider] as fundamentalsProvider
+  }
+
+  package "Persistence & Delivery" {
+    interface "PortfolioPositionRepository" as positionRepo
+    [JdbcPortfolioPositionRepository] as jdbcRepo
+    interface "TradeRecommendationPublisher" as publisher
+    [KafkaTradeRecommendationPublisher] as kafkaPublisher
+    [TradeRecommendationSchedule] as recSchedule
+  }
+}
+
+database "H2/MySQL\nportfolio_positions" as db
+queue "Kafka Topic\n tyche.trade-recommendations.v1" as kafka
+cloud "GDELT Doc API" as gdelt
+cloud "SEC Edgar API" as sec
+
+user --> assetsController : GET /assets
+user --> recController : POST /api/recommendations/generate\nGET /api/recommendations/backtest
+scheduler --> recSchedule : cron trigger
+
+assetsController --> portfolioService
+recController --> workflow
+recController --> backtest
+recSchedule --> workflow
+
+workflow --> portfolioService
+workflow --> publisher
+
+portfolioService --> positionRepo
+portfolioService --> ta
+portfolioService --> marketData
+portfolioService --> signalService
+portfolioService --> scoring
+
+backtest --> positionRepo
+backtest --> marketData
+backtest --> ta
+backtest --> scoring
+
+signalService --> newsProvider
+signalService --> macroProvider
+signalService --> fundamentalsProvider
+
+jdbcRepo -up-|> positionRepo
+positionRepo --> db
+
+kafkaPublisher -up-|> publisher
+publisher --> kafka
+
+newsProvider --> gdelt
+macroProvider --> gdelt
+fundamentalsProvider --> sec
+
+@enduml

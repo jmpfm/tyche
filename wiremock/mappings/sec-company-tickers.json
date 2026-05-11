@@ -1,0 +1,24 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/files/company_tickers.json"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "0": {
+        "cik_str": 320193,
+        "ticker": "AAPL",
+        "title": "Apple Inc."
+      },
+      "1": {
+        "cik_str": 789019,
+        "ticker": "MSFT",
+        "title": "Microsoft Corporation"
+      }
+    }
+  }
+}
