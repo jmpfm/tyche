@@ -14,6 +14,10 @@ spring:
       ddl-auto: update
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: ${TYCHE_RECOMMENDATIONS_EVENTS_GROUP_ID:tyche-recommendation-engine}
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
@@ -27,6 +31,9 @@ tyche:
       enabled: ${TYCHE_RECOMMENDATIONS_SCHEDULE_ENABLED:true}
       cron: ${TYCHE_RECOMMENDATIONS_CRON:0 30 22 * * MON-FRI}
       zone: ${TYCHE_RECOMMENDATIONS_ZONE:Europe/London}
+    engine:
+      interval: ${TYCHE_RECOMMENDATIONS_ENGINE_INTERVAL:PT1H}
+      enabled: ${TYCHE_RECOMMENDATIONS_ENGINE_ENABLED:true}
     news:
       enabled: ${TYCHE_RECOMMENDATIONS_NEWS_ENABLED:true}
       gdelt-url: ${TYCHE_GDELT_DOC_URL:https://api.gdeltproject.org/api/v2/doc/doc}
@@ -37,6 +44,18 @@ tyche:
         user-agent: ${SEC_USER_AGENT:}
         tickers-url: ${TYCHE_SEC_TICKERS_URL:https://www.sec.gov/files/company_tickers.json}
         companyfacts-base-url: ${TYCHE_SEC_COMPANYFACTS_BASE_URL:https://data.sec.gov/api/xbrl/companyfacts}
+    events:
+      enabled: ${TYCHE_RECOMMENDATIONS_EVENTS_ENABLED:false}
+      group-id: ${TYCHE_RECOMMENDATIONS_EVENTS_GROUP_ID:tyche-recommendation-engine}
+      technical-analysis-topic: ${TYCHE_RECOMMENDATIONS_EVENTS_TA_TOPIC:tyche.ta-events.v1}
+      news-topic: ${TYCHE_RECOMMENDATIONS_EVENTS_NEWS_TOPIC:tyche.news-events.v1}
+    state:
+      technical-analysis-topic: ${TYCHE_RECOMMENDATIONS_STATE_TA_TOPIC:tyche.recommendation-state.ta.v1}
+      symbol-news-topic: ${TYCHE_RECOMMENDATIONS_STATE_SYMBOL_NEWS_TOPIC:tyche.recommendation-state.news-symbol.v1}
+      global-news-topic: ${TYCHE_RECOMMENDATIONS_STATE_GLOBAL_NEWS_TOPIC:tyche.recommendation-state.news-global.v1}
+      changes-topic: ${TYCHE_RECOMMENDATIONS_STATE_CHANGES_TOPIC:tyche.recommendation-state.changes.v1}
+      ta-ttl: ${TYCHE_RECOMMENDATIONS_STATE_TA_TTL:PT36H}
+      news-ttl: ${TYCHE_RECOMMENDATIONS_STATE_NEWS_TTL:PT72H}
 
 ---
 spring:
@@ -49,6 +68,10 @@ tyche:
     kafka:
       enabled: false
     schedule:
+      enabled: false
+    engine:
+      enabled: false
+    events:
       enabled: false
     news:
       gdelt-url: http://localhost:8089/api/v2/doc/doc

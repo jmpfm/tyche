@@ -10,3 +10,11 @@ create table if not exists portfolio_positions (
 	display_order integer not null default 0,
 	constraint uk_portfolio_positions_symbol unique (symbol)
 );
+
+create table if not exists tracked_stocks (
+	symbol varchar(16) primary key,
+	name varchar(255) not null,
+	enabled boolean not null default true,
+	created_at timestamp not null,
+	updated_at timestamp not null
+);

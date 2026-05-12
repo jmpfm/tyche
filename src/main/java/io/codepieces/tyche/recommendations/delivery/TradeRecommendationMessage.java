@@ -23,6 +23,9 @@ public record TradeRecommendationMessage(
 		String rationale,
 		boolean advisoryOnly,
 		boolean dataQualityStrong,
+		String triggerType,
+		Instant triggerWindowStartedAt,
+		Instant triggerWindowEndedAt,
 		Instant generatedAt,
 		String modelVersion
 ) {
@@ -45,6 +48,9 @@ public record TradeRecommendationMessage(
 				recommendation.rationale(),
 				true,
 				recommendation.dataQualityStrong(),
+				"HOURLY_STATE_EVALUATION",
+				recommendation.generatedAt(),
+				recommendation.generatedAt(),
 				recommendation.generatedAt(),
 				recommendation.modelVersion()
 		);

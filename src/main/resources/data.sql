@@ -97,3 +97,27 @@ merge into portfolio_positions (
 	0.00,
 	50
 );
+
+merge into tracked_stocks (symbol, name, enabled, created_at, updated_at) key(symbol) values (
+	'VOO',
+	'Vanguard S&P 500 ETF',
+	true,
+	current_timestamp(),
+	current_timestamp()
+);
+
+merge into tracked_stocks (symbol, name, enabled, created_at, updated_at) key(symbol) values (
+	'AAPL',
+	'Apple Inc.',
+	true,
+	current_timestamp(),
+	current_timestamp()
+);
+
+merge into tracked_stocks (symbol, name, enabled, created_at, updated_at) key(symbol) values (
+	'MSFT',
+	'Microsoft Corp.',
+	true,
+	current_timestamp(),
+	current_timestamp()
+);

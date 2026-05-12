@@ -10,6 +10,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 import io.codepieces.tyche.assets.AssetIndicators;
 import io.codepieces.tyche.assets.AssetPosition;
@@ -81,6 +82,19 @@ public class TradeRecommendationService {
 						.thenComparing(RecommendedTrade::estimatedAmount).reversed())
 				.limit(MAX_RECOMMENDATIONS)
 				.toList();
+	}
+
+	public Optional<RecommendedTrade> recommendTradeForSymbol(
+			AssetPosition position,
+			BigDecimal totalValue,
+			BigDecimal deployableCash,
+			RecommendationSignal signal
+	) {
+		return recommendationFor(position, totalValue, deployableCash, signal).stream().findFirst();
+	}
+
+	public BigDecimal deployableCashFor(List<AssetPosition> positions, BigDecimal totalValue) {
+		return deployableCash(positions, totalValue);
 	}
 
 	private List<RecommendedTrade> recommendationFor(
